@@ -6,6 +6,7 @@
 #   ./build.sh install    build, copy to /Applications, delete the build/ copy, launch
 #   ./build.sh dump       build, print the parsed usage numbers to the terminal
 #   ./build.sh setup-statusline   let Claude Code share exact usage % with the app (no credentials)
+#   ./build.sh release    universal app zipped into dist/ for GitHub Releases
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -57,8 +58,28 @@ setup_statusline() {
   echo "Set statusLine in $settings (backup: $settings.bak-claudethermal)"
 }
 
+make_release() {
+  # Universal (Apple silicon + Intel) app, zipped for GitHub Releases.
+  local version
+  version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+  swift build -c release --triple arm64-apple-macosx14.0
+  swift build -c release --triple x86_64-apple-macosx14.0
+  lipo -create \
+    ".build/arm64-apple-macosx/release/${APP_NAME}" \
+    ".build/x86_64-apple-macosx/release/${APP_NAME}" \
+    -output "$APP/Contents/MacOS/${APP_NAME}"
+  codesign --force --deep --sign - "$APP" >/dev/null
+  mkdir -p dist
+  local zip="dist/${APP_NAME}-${version}.zip"
+  rm -f "$zip"
+  ditto -c -k --sequesterRsrc --keepParent "$APP" "$zip"
+  shasum -a 256 "$zip" | tee "$zip.sha256"
+  echo "Release archive: $zip ($(lipo -archs "$APP/Contents/MacOS/${APP_NAME}"))"
+}
+
 case "${1:-}" in
   setup-statusline) setup_statusline ;;
+  release) make_release ;;
   run) relaunch "$APP" ;;
   install)
     pkill -x "$APP_NAME" 2>/dev/null || true
@@ -71,5 +92,5 @@ case "${1:-}" in
     ;;
   dump) "$APP/Contents/MacOS/${APP_NAME}" --dump ;;
   "") ;;
-  *) echo "usage: $0 [run|install|dump|setup-statusline]"; exit 1 ;;
+  *) echo "usage: $0 [run|install|dump|setup-statusline|release]"; exit 1 ;;
 esac
