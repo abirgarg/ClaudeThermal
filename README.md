@@ -37,7 +37,23 @@ Hover over it for the details:
 
 ## Install
 
-You need macOS 14+ and the Xcode Command Line Tools (`xcode-select --install`). Full Xcode isn't required.
+You need macOS 14+ and Claude Code, signed in to a Claude subscription.
+
+### Download
+
+Get **ClaudeThermal-x.y.z.zip** from [Releases](https://github.com/abirgarg/ClaudeThermal/releases/latest), unzip it, and move **ClaudeThermal.app** to Applications. It's a universal app for Apple silicon and Intel.
+
+The app isn't notarized by Apple, so macOS blocks the first launch. Open it once, then click **Open Anyway** in **System Settings → Privacy & Security**. Or run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/ClaudeThermal.app
+```
+
+For continuous updates, set up the status line bridge as described in the [release notes](https://github.com/abirgarg/ClaudeThermal/releases/latest).
+
+### Build from source
+
+You need the Xcode Command Line Tools (`xcode-select --install`). Full Xcode isn't required.
 
 ```bash
 git clone https://github.com/abirgarg/ClaudeThermal.git
@@ -71,6 +87,7 @@ ClaudeThermal never reads your Claude login, your Keychain, or the network. Clau
 ./build.sh              # build build/ClaudeThermal.app
 ./build.sh run          # build and launch from build/
 ./build.sh install      # install to /Applications (and remove the build/ copy)
+./build.sh release      # universal zip in dist/ for GitHub Releases
 ./build.sh dump         # print everything the app computes
 ./build.sh setup-statusline
 ```

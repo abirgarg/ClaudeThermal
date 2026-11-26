@@ -73,7 +73,7 @@ make_release() {
   local zip="dist/${APP_NAME}-${version}.zip"
   rm -f "$zip"
   ditto -c -k --sequesterRsrc --keepParent "$APP" "$zip"
-  shasum -a 256 "$zip" | tee "$zip.sha256"
+  (cd dist && shasum -a 256 "$(basename "$zip")" | tee "$(basename "$zip").sha256")
   echo "Release archive: $zip ($(lipo -archs "$APP/Contents/MacOS/${APP_NAME}"))"
 }
 
